@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get user document
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper functions for roles
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserData().role == 'super_admin';
+    }
+    
+    function isStoreManager() {
+      return isAuthenticated() && (getUserData().role == 'store_manager' || getUserData().role == 'super_admin');
+    }
+
+    // Cashier and other active transacting staff
+    function isCashier() {
+      return isAuthenticated() && (
+        getUserData().role == 'cashier' || 
+        getUserData().role == 'store_manager' || 
+        getUserData().role == 'super_admin'
+      );
+    }
+    
+    function isInventoryStaff() {
+      return isAuthenticated() && (
+        getUserData().role == 'inventory_staff' || 
+        getUserData().role == 'store_manager' || 
+        getUserData().role == 'super_admin'
+      );
+    }
+    
+    function isAccountant() {
+      return isAuthenticated() && (
+        getUserData().role == 'accountant' || 
+        getUserData().role == 'store_manager' || 
+        getUserData().role == 'super_admin'
+      );
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+    }
+    
+    // Employees collection
+    match /employees/{employeeId} {
+      allow read: if isStoreManager();
+      allow write: if isSuperAdmin();
+    }
+    
+    // Settings collection
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+    
+    // Products, Categories, Brands & Variants (Inventory management)
+    match /products/{productId} {
+      allow read: if isAuthenticated();
+      allow write: if isInventoryStaff() || isStoreManager();
+    }
+    match /productVariants/{variantId} {
+      allow read: if isAuthenticated();
+      allow write: if isInventoryStaff() || isStoreManager() || isCashier(); // Cashiers deduct stock during checkouts
+    }
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow write: if isInventoryStaff() || isStoreManager();
+    }
+    match /brands/{brandId} {
+      allow read: if isAuthenticated();
+      allow write: if isInventoryStaff() || isStoreManager();
+    }
+    
+    // Suppliers & Purchases
+    match /suppliers/{supplierId} {
+      allow read: if isStoreManager() || isInventoryStaff() || isAccountant();
+      allow write: if isStoreManager() || isInventoryStaff();
+    }
+    match /purchaseOrders/{orderId} {
+      allow read: if isStoreManager() || isInventoryStaff() || isAccountant();
+      allow write: if isStoreManager() || isInventoryStaff();
+    }
+    
+    // Sales and Payments
+    match /sales/{saleId} {
+      allow read: if isCashier() || isAccountant() || isStoreManager();
+      allow write: if isCashier() || isStoreManager();
+    }
+    match /returns/{returnId} {
+      allow read: if isCashier() || isStoreManager();
+      allow write: if isCashier() || isStoreManager();
+    }
+    
+    // Customers & Loyalty
+    match /customers/{customerId} {
+      allow read, write: if isCashier() || isStoreManager();
+    }
+
+    // Expenses
+    match /expenses/{expenseId} {
+      allow read: if isAccountant() || isStoreManager();
+      allow write: if isAccountant() || isStoreManager();
+    }
+
+    // Audit logs
+    match /auditLogs/{logId} {
+      allow read: if isSuperAdmin();
+      allow write: if isAuthenticated(); // All authenticated users write audit logs
+    }
+  }
+}
