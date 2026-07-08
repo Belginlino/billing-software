@@ -3,12 +3,27 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { FcGoogle } from 'react-icons/fc';
 
 export const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm();
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      toast.success("Successfully logged in with Google!");
+      navigate('/');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Google login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -38,7 +53,7 @@ export const Login: React.FC = () => {
           <input
             type="email"
             className={`form-control border bg-transparent ${errors.email ? 'border-danger' : ''}`}
-            placeholder="name@voguemenswear.com"
+            placeholder="name@linoclothing.com"
             style={{ color: 'var(--text-primary)' }}
             {...register('email', { 
               required: 'Email address is required',
@@ -102,17 +117,23 @@ export const Login: React.FC = () => {
         </button>
       </form>
 
-      {/* Helper credentials box */}
-      <div className="mt-4 p-3 rounded bg-tertiary border" style={{ borderColor: 'var(--border-color)', fontSize: '0.8rem' }}>
-        <span className="fw-semibold text-accent d-block mb-1">Demo Accounts (Pass: [Role]123):</span>
-        <ul className="list-unstyled mb-0 text-secondary">
-          <li><strong>Admin:</strong> admin@voguemenswear.com / Admin123</li>
-          <li><strong>Manager:</strong> manager@voguemenswear.com / Manager123</li>
-          <li><strong>Cashier:</strong> cashier@voguemenswear.com / Cashier123</li>
-          <li><strong>Inventory:</strong> inventory@voguemenswear.com / Inventory123</li>
-          <li><strong>Accountant:</strong> accountant@voguemenswear.com / Accountant123</li>
-        </ul>
+      {/* Or Google Login */}
+      <div className="d-flex align-items-center my-3 text-secondary">
+        <hr className="flex-grow-1 border-secondary-subtle" />
+        <span className="px-2 small text-uppercase" style={{ fontSize: '0.7rem', letterSpacing: '0.05em' }}>Or continue with</span>
+        <hr className="flex-grow-1 border-secondary-subtle" />
       </div>
+
+      <button
+        type="button"
+        className="btn btn-outline-secondary w-100 py-2 d-flex justify-content-center align-items-center gap-2 border bg-transparent"
+        style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+        onClick={handleGoogleLogin}
+        disabled={loading}
+      >
+        <FcGoogle size={20} />
+        Sign In with Google
+      </button>
     </div>
   );
 };

@@ -5,7 +5,9 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut, 
-  sendPasswordResetEmail 
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { dbService } from './db';
 import { User, UserRole } from '../types';
@@ -87,6 +89,67 @@ export const authService = {
     }
 
     return this.localLogin(email, password);
+  },
+
+  async loginWithGoogle(): Promise<User> {
+    if (isFirebaseEnabled && firebaseAuth) {
+      try {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(firebaseAuth, provider);
+        const firebaseUser = userCredential.user;
+        
+        // Fetch custom role details from Firestore users collection
+        const allUsers = await dbService.getUsers();
+        const existing = allUsers.find(u => u.id === firebaseUser.uid);
+        
+        if (existing) {
+          if (existing.status === 'disabled') {
+            throw new Error("Your account has been disabled. Please contact your Super Admin.");
+          }
+          // Update last login
+          existing.lastLogin = new Date().toISOString();
+          await dbService.saveUser(existing);
+          return existing;
+        } else {
+          const email = firebaseUser.email || '';
+          let defaultRole: UserRole = 'cashier';
+          const prefix = email.split('@')[0].toLowerCase();
+          if (prefix === 'admin') defaultRole = 'super_admin';
+          else if (prefix === 'manager') defaultRole = 'store_manager';
+          else if (prefix === 'cashier') defaultRole = 'cashier';
+          else if (prefix === 'inventory') defaultRole = 'inventory_staff';
+          else if (prefix === 'accountant') defaultRole = 'accountant';
+
+          const defaultUser: User = {
+            id: firebaseUser.uid,
+            username: firebaseUser.displayName || email.split('@')[0] || 'Google User',
+            email: email,
+            role: defaultRole,
+            status: 'active',
+            createdAt: new Date().toISOString()
+          };
+          await dbService.saveUser(defaultUser);
+          return defaultUser;
+        }
+      } catch (err: any) {
+        console.error("Firebase Google Auth failed.", err);
+        throw err;
+      }
+    }
+
+    return this.localGoogleLogin();
+  },
+
+  async localGoogleLogin(): Promise<User> {
+    const allUsers = await dbService.getUsers();
+    const adminUser = allUsers.find(u => u.role === 'super_admin' && u.status === 'active');
+    if (!adminUser) {
+      throw new Error("No active admin user found for local google login fallback.");
+    }
+    adminUser.lastLogin = new Date().toISOString();
+    await dbService.saveUser(adminUser);
+    localStorage.setItem('vogue_session', JSON.stringify(adminUser));
+    return adminUser;
   },
 
   async localLogin(email: string, password: string): Promise<User> {

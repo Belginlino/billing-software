@@ -50,6 +50,26 @@ import {
 } from '../types';
 import * as mockSeeds from './mockData';
 
+let wasAlreadySeeded: boolean | null = null;
+
+const checkWasAlreadySeeded = async (): Promise<boolean> => {
+  if (wasAlreadySeeded !== null) {
+    return wasAlreadySeeded;
+  }
+  if (isFirebaseEnabled && firestore) {
+    try {
+      const settingsRef = doc(firestore, 'settings', 'global');
+      const snap = await getDoc(settingsRef);
+      wasAlreadySeeded = snap.exists();
+      return wasAlreadySeeded;
+    } catch (err) {
+      console.error("Error checking checkWasAlreadySeeded:", err);
+      return false;
+    }
+  }
+  return true;
+};
+
 // Local Storage Helper
 const getLocal = <T>(key: string, seed: T): T => {
   const data = localStorage.getItem(key);
@@ -155,7 +175,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'users'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           // Initialize DB with seed users
           for (const u of mockSeeds.MOCK_USERS) {
             await setDoc(doc(firestore, 'users', u.id), u);
@@ -206,7 +227,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'employees'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const e of mockSeeds.MOCK_EMPLOYEES) {
             await setDoc(doc(firestore, 'employees', e.id), e);
           }
@@ -259,7 +281,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'categories'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const c of mockSeeds.MOCK_CATEGORIES) {
             await setDoc(doc(firestore, 'categories', c.id), c);
           }
@@ -294,7 +317,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'brands'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const b of mockSeeds.MOCK_BRANDS) {
             await setDoc(doc(firestore, 'brands', b.id), b);
           }
@@ -332,7 +356,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'products'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const p of mockSeeds.MOCK_PRODUCTS) {
             await setDoc(doc(firestore, 'products', p.id), p);
           }
@@ -389,7 +414,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'productVariants'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const v of mockSeeds.MOCK_VARIANTS) {
             await setDoc(doc(firestore, 'productVariants', v.id), v);
           }
@@ -466,7 +492,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'customers'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const c of mockSeeds.MOCK_CUSTOMERS) {
             await setDoc(doc(firestore, 'customers', c.id), c);
           }
@@ -511,7 +538,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'suppliers'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const s of mockSeeds.MOCK_SUPPLIERS) {
             await setDoc(doc(firestore, 'suppliers', s.id), s);
           }
@@ -546,7 +574,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'purchaseOrders'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const p of mockSeeds.MOCK_PURCHASES) {
             await setDoc(doc(firestore, 'purchaseOrders', p.id), p);
           }
@@ -584,7 +613,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'expenses'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const e of mockSeeds.MOCK_EXPENSES) {
             await setDoc(doc(firestore, 'expenses', e.id), e);
           }
@@ -636,7 +666,8 @@ export const dbService = {
     if (isFirebaseEnabled && firestore) {
       try {
         const snap = await getDocs(collection(firestore, 'sales'));
-        if (snap.empty) {
+        const alreadySeeded = await checkWasAlreadySeeded();
+        if (snap.empty && !alreadySeeded) {
           for (const s of mockSeeds.MOCK_SALES) {
             await setDoc(doc(firestore, 'sales', s.id), s);
           }

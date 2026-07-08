@@ -80,7 +80,7 @@ export const DashboardLayout: React.FC = () => {
             )}
             {(!collapsed || mobileOpen) && (
               <span className="fw-bold tracking-tight text-truncate" style={{ fontSize: '1.25rem', fontFamily: 'Outfit', color: 'var(--accent-color)' }}>
-                vogue<span style={{ color: 'var(--text-primary)' }}>.</span>
+                lino clothing<span style={{ color: 'var(--text-primary)' }}>.</span>
               </span>
             )}
           </div>

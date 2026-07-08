@@ -53,7 +53,7 @@ export const ForgotPassword: React.FC = () => {
             <input
               type="email"
               className={`form-control border bg-transparent ${errors.email ? 'border-danger' : ''}`}
-              placeholder="name@voguemenswear.com"
+              placeholder="name@linoclothing.com"
               style={{ color: 'var(--text-primary)' }}
               {...register('email', { 
                 required: 'Email address is required',

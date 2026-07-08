@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { dbService } from '../../services/db';
 import { Product, ProductVariant, Category, Brand } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +25,9 @@ export const Inventory: React.FC = () => {
 
   // Expanded product IDs list
   const [expandedProductIds, setExpandedProductIds] = useState<string[]>([]);
+
+  // Delete confirm modal target state
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<{ id: string; name: string; type: 'product' | 'variant' } | null>(null);
 
   // Search/Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -200,11 +204,11 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  const handleDeleteProduct = async (pId: string, name: string) => {
-    if (!window.confirm(`Are you absolutely sure you want to delete "${name}"? This deletes all associated variants as well.`)) {
-      return;
-    }
+  const handleDeleteProductClick = (pId: string, name: string) => {
+    setDeleteConfirmTarget({ id: pId, name, type: 'product' });
+  };
 
+  const handleDeleteProductConfirm = async (pId: string, name: string) => {
     try {
       await dbService.deleteProduct(pId);
       await dbService.addAuditLog(
@@ -218,6 +222,23 @@ export const Inventory: React.FC = () => {
       loadInventory();
     } catch (err) {
       toast.error("Failed to delete product.");
+    }
+  };
+
+  const handleDeleteVariantConfirm = async (vId: string, name: string) => {
+    try {
+      await dbService.deleteVariant(vId);
+      await dbService.addAuditLog(
+        user?.id || 'sys',
+        user?.username || 'System',
+        user?.role || 'store_manager',
+        "Inventory Updates",
+        `Deleted variant "${name}"`
+      );
+      toast.success("Variant deleted successfully.");
+      loadInventory();
+    } catch (err) {
+      toast.error("Failed to delete variant.");
     }
   };
 
@@ -420,7 +441,7 @@ export const Inventory: React.FC = () => {
                             <button 
                               className="btn btn-sm btn-outline-danger p-1.5" 
                               title="Delete Product"
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
+                              onClick={() => handleDeleteProductClick(p.id, p.name)}
                             >
                               <FiTrash2 size={14} />
                             </button>
@@ -464,15 +485,26 @@ export const Inventory: React.FC = () => {
                                       </td>
                                       {hasPermission(['super_admin', 'store_manager', 'inventory_staff']) && (
                                         <td className="text-end">
-                                          <button 
-                                            className="btn btn-sm btn-outline-accent py-0.5 px-2"
-                                            onClick={() => {
-                                              setAdjustVariant(variant);
-                                              setShowStockAdjustModal(true);
-                                            }}
-                                          >
-                                            Adjust Stock
-                                          </button>
+                                          <div className="d-inline-flex gap-2">
+                                            <button 
+                                              className="btn btn-sm btn-outline-accent py-0.5 px-2"
+                                              onClick={() => {
+                                                setAdjustVariant(variant);
+                                                setShowStockAdjustModal(true);
+                                              }}
+                                            >
+                                              Adjust Stock
+                                            </button>
+                                            {hasPermission(['super_admin']) && (
+                                              <button 
+                                                className="btn btn-sm btn-outline-danger py-0.5 px-1.5"
+                                                title="Delete Variant"
+                                                onClick={() => setDeleteConfirmTarget({ id: variant.id, name: `${variant.productName} (${variant.color}/${variant.size})`, type: 'variant' })}
+                                              >
+                                                <FiTrash2 size={12} />
+                                              </button>
+                                            )}
+                                          </div>
                                         </td>
                                       )}
                                     </tr>
@@ -493,8 +525,8 @@ export const Inventory: React.FC = () => {
       </div>
 
       {/* MODAL: Stock Adjust popup */}
-      {showStockAdjustModal && adjustVariant && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }} tabIndex={-1}>
+      {showStockAdjustModal && adjustVariant && createPortal(
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050 }} tabIndex={-1}>
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
@@ -549,13 +581,14 @@ export const Inventory: React.FC = () => {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL: Add Product popup */}
-      {showAddProductModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050 }} tabIndex={-1}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+      {showAddProductModal && createPortal(
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050, overflowY: 'auto' }} tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
                 <h5 className="modal-title fw-bold">Create New Clothing Product</h5>
@@ -629,7 +662,53 @@ export const Inventory: React.FC = () => {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL: Custom delete confirmation dialog */}
+      {deleteConfirmTarget && createPortal(
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1100 }} tabIndex={-1}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
+            <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
+                <h5 className="modal-title fw-bold text-danger d-flex align-items-center gap-2">
+                  <FiAlertCircle /> Confirm Delete
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setDeleteConfirmTarget(null)}></button>
+              </div>
+              <div className="modal-body">
+                <p className="mb-0 text-start">
+                  Are you absolutely sure you want to delete the {deleteConfirmTarget.type === 'product' ? 'product' : 'variant'} <strong>"{deleteConfirmTarget.name}"</strong>?
+                </p>
+                {deleteConfirmTarget.type === 'product' && (
+                  <p className="text-warning small mt-2 mb-0 text-start">
+                    <FiAlertCircle /> Warning: This will permanently delete all associated size/color variants as well.
+                  </p>
+                )}
+              </div>
+              <div className="modal-footer border-top" style={{ borderColor: 'var(--border-color)' }}>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setDeleteConfirmTarget(null)}>Cancel</button>
+                <button 
+                  type="button" 
+                  className="btn btn-sm btn-danger"
+                  onClick={async () => {
+                    const target = deleteConfirmTarget;
+                    setDeleteConfirmTarget(null);
+                    if (target.type === 'product') {
+                      await handleDeleteProductConfirm(target.id, target.name);
+                    } else {
+                      await handleDeleteVariantConfirm(target.id, target.name);
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

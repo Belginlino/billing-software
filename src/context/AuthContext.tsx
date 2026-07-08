@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
+  loginWithGoogle: () => Promise<User>;
   logout: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   hasPermission: (allowedRoles: UserRole[]) => boolean;
@@ -55,6 +56,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const loggedUser = await authService.loginWithGoogle();
+      setUser(loggedUser);
+      await dbService.addAuditLog(
+        loggedUser.id,
+        loggedUser.username,
+        loggedUser.role,
+        "Login",
+        `User logged in via Google successfully (${loggedUser.email})`
+      );
+      return loggedUser;
+    } catch (err) {
+      setUser(null);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     if (user) {
       try {
@@ -91,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, forgotPassword, hasPermission, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, forgotPassword, hasPermission, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

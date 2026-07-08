@@ -346,7 +346,7 @@ export const Users: React.FC = () => {
                   </div>
                   <div className="mb-3">
                     <label className="form-label text-secondary small fw-medium">System Email Address</label>
-                    <input type="email" className="form-control bg-transparent font-monospace" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="username@voguemenswear.com" required />
+                    <input type="email" className="form-control bg-transparent font-monospace" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} placeholder="username@linoclothing.com" required />
                   </div>
                   <div className="mb-3">
                     <label className="form-label text-secondary small fw-medium">Assigned Role privileges</label>
