@@ -56,6 +56,7 @@ export const Inventory: React.FC = () => {
   const [prodGST, setProdGST] = useState<number>(18);
   const [prodImage, setProdImage] = useState('');
   const [prodSupplier, setProdSupplier] = useState('');
+  const [prodSize, setProdSize] = useState('M');
 
   const loadInventory = async () => {
     setLoading(true);
@@ -159,19 +160,19 @@ export const Inventory: React.FC = () => {
         updatedAt: new Date().toISOString()
       };
 
-      // Create a default variant of size M and color Black
+      // Create a default variant with the selected size and color Black
       const vId = `v-${Date.now()}`;
       const defaultVariant: ProductVariant = {
         id: vId,
         productId: pId,
         productName: prodName,
         color: "Black",
-        size: "M",
+        size: prodSize,
         material: "Cotton",
         stock: 10,
         lowStockThreshold: settings?.lowStockAlertLevel || 5,
         barcode: prodBarcode,
-        sku: `${prodSKU}-M-BLK`
+        sku: `${prodSKU}-${prodSize}-BLK`
       };
 
       await dbService.saveProduct(newProduct);
@@ -182,7 +183,7 @@ export const Inventory: React.FC = () => {
         user?.username || 'System',
         user?.role || 'store_manager',
         "User Creation", // standard action in rules
-        `Created product ${prodName} (${prodSKU}) with default M-Black variant.`
+        `Created product ${prodName} (${prodSKU}) with default ${prodSize}-Black variant.`
       );
 
       toast.success("New product with default variant successfully added!");
@@ -197,6 +198,7 @@ export const Inventory: React.FC = () => {
       setProdSellingPrice(0);
       setProdDiscount(0);
       setProdImage('');
+      setProdSize('M');
 
       loadInventory();
     } catch (err) {
@@ -541,6 +543,31 @@ export const Inventory: React.FC = () => {
                     <span className="small text-secondary font-monospace" style={{ fontSize: '0.72rem' }}>Current stock count: {adjustVariant.stock}</span>
                   </div>
                   <hr className="my-2" style={{ color: 'var(--border-color)' }} />
+
+                  {/* Size of the Dress Option */}
+                  <div className="mb-3">
+                    <label className="form-label text-secondary small fw-medium">Size of the Dress</label>
+                    <select 
+                      className="form-select bg-transparent" 
+                      style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+                      value={adjustVariant.id}
+                      onChange={(e) => {
+                        const selectedVar = variants.find(v => v.id === e.target.value);
+                        if (selectedVar) {
+                          setAdjustVariant(selectedVar);
+                        }
+                      }}
+                    >
+                      {variants
+                        .filter(v => v.productId === adjustVariant.productId)
+                        .map(v => (
+                          <option key={v.id} value={v.id}>
+                            {v.size} ({v.color}) - Stock: {v.stock}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
                   
                   {/* Adjustment reason */}
                   <div className="mb-3">
@@ -649,7 +676,27 @@ export const Inventory: React.FC = () => {
                         <option value={28}>28%</option>
                       </select>
                     </div>
-                    <div className="col-12 col-md-6">
+                    <div className="col-6 col-md-3">
+                      <label className="form-label text-secondary small fw-medium">Size of the Dress</label>
+                      <select 
+                        className="form-select bg-transparent" 
+                        style={{ color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+                        value={prodSize} 
+                        onChange={(e) => setProdSize(e.target.value)}
+                      >
+                        <option value="XS">XS</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                        <option value="38">38</option>
+                        <option value="40">40</option>
+                        <option value="42">42</option>
+                        <option value="44">44</option>
+                      </select>
+                    </div>
+                    <div className="col-12 col-md-9">
                       <label className="form-label text-secondary small fw-medium">Product Image URL</label>
                       <input type="text" className="form-control bg-transparent" value={prodImage} onChange={(e) => setProdImage(e.target.value)} placeholder="https://unsplash..." />
                     </div>

@@ -555,3 +555,27 @@ input.form-control, select.form-select, textarea.form-control {
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.2);
 }
+
+/* Premium Form Input & Focus Highlight States */
+input.form-control, select.form-select, textarea.form-control {
+  border-color: var(--border-color) !important;
+  background-color: var(--bg-secondary) !important;
+}
+
+input.form-control:focus, select.form-select:focus, textarea.form-control:focus {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 0.25rem var(--accent-light) !important;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark Mode Close Button Invert */
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
+}
+
+/* Premium Modal Layout Design Details */
+.modal-content {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}

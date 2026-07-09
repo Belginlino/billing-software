@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { dbService } from '../../services/db';
 import { User, AuditLog, UserRole } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -41,6 +42,21 @@ export const Users: React.FC = () => {
   useEffect(() => {
     loadUserData();
   }, []);
+
+  // Keyboard accessibility: dismiss modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAddUserModal(false);
+      }
+    };
+    if (showAddUserModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showAddUserModal]);
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,8 +346,17 @@ export const Users: React.FC = () => {
       </div>
 
       {/* MODAL: Onboard User Account popup */}
-      {showAddUserModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }} tabIndex={-1}>
+      {showAddUserModal && createPortal(
+        <div 
+          className="modal show d-block" 
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)' }} 
+          tabIndex={-1}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAddUserModal(false);
+            }
+          }}
+        >
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
@@ -366,7 +391,8 @@ export const Users: React.FC = () => {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
