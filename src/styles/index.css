@@ -367,16 +367,9 @@ body {
   .pos-catalog, .pos-cart {
     height: 100%;
   }
-  .pos-products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
 }
 
 @media (max-width: 575.98px) {
-  .pos-products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 0.75rem;
-  }
   .pos-container {
     height: calc(100vh - 180px);
   }
@@ -439,14 +432,20 @@ body {
 
 .pos-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, 180px);
+  grid-auto-rows: 260px;
   gap: 1rem;
+  align-content: start;
+  align-items: start;
+  justify-content: start;
   overflow-y: auto;
   padding: 0.5rem;
   flex-grow: 1;
 }
 
 .pos-product-card {
+  width: 180px;
+  height: 260px;
   cursor: pointer;
   border-radius: 12px;
   border: 1px solid var(--border-color);
@@ -464,10 +463,64 @@ body {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
 }
 
+.pos-product-card-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-product-price {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pos-product-price .text-decoration-line-through {
+  display: inline-block;
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.pos-product-stock-badge {
+  justify-self: end;
+  min-width: 64px;
+  justify-content: center;
+  padding-left: 0.65em;
+  padding-right: 0.65em;
+}
+
 .pos-cart-items {
   flex-grow: 1;
   overflow-y: auto;
   padding-right: 0.5rem;
+}
+
+@media (max-width: 991.98px) {
+  .pos-products-grid {
+    grid-template-columns: repeat(auto-fill, 150px);
+    grid-auto-rows: 240px;
+  }
+
+  .pos-product-card {
+    width: 150px;
+    height: 240px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pos-products-grid {
+    grid-template-columns: repeat(auto-fill, 140px);
+    grid-auto-rows: 230px;
+    gap: 0.75rem;
+  }
+
+  .pos-product-card {
+    width: 140px;
+    height: 230px;
+  }
 }
 
 /* Invoice Printable Styling */

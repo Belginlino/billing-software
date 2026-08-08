@@ -422,8 +422,8 @@ export const POS: React.FC = () => {
                     <span className="text-secondary small d-block font-monospace">{p.brand}</span>
                     <h6 className="fw-semibold mb-1 text-truncate" style={{ fontSize: '0.85rem' }}>{p.name}</h6>
                   </div>
-                  <div className="d-flex justify-content-between align-items-center mt-2">
-                    <div>
+                  <div className="pos-product-card-footer mt-2">
+                    <div className="pos-product-price">
                       {p.discount > 0 ? (
                         <>
                           <span className="fw-bold text-accent small">{formatCurrency(discountedPrice, currencySymbol)}</span>
@@ -435,7 +435,7 @@ export const POS: React.FC = () => {
                         <span className="fw-bold text-accent small">{formatCurrency(p.sellingPrice, currencySymbol)}</span>
                       )}
                     </div>
-                    <span className={`custom-badge text-nowrap ${totalStock <= 0 ? 'badge-danger' : totalStock <= 5 ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.65rem' }}>
+                    <span className={`pos-product-stock-badge custom-badge text-nowrap ${totalStock <= 0 ? 'badge-danger' : totalStock <= 5 ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.65rem' }}>
                       {totalStock <= 0 ? 'Stockout' : `Qty: ${totalStock}`}
                     </span>
                   </div>
