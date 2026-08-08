@@ -46,12 +46,17 @@ export const Login: React.FC = () => {
         Log in to access inventory, billing terminal, and reports.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} role="form" aria-labelledby="login-heading">
         {/* Email Input */}
         <div className="mb-3">
-          <label className="form-label text-secondary small fw-medium">Email Address</label>
+          <label htmlFor="email" className="form-label text-secondary small fw-medium">Email Address</label>
           <input
+            id="email"
+            name="email"
             type="email"
+            aria-invalid={errors.email ? 'true' : 'false'}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            autoComplete="email"
             className={`form-control border bg-transparent ${errors.email ? 'border-danger' : ''}`}
             placeholder="name@linoclothing.com"
             style={{ color: 'var(--text-primary)' }}
@@ -64,22 +69,27 @@ export const Login: React.FC = () => {
             })}
           />
           {errors.email && (
-            <span className="text-danger small mt-1 d-block">{(errors.email.message as string)}</span>
+            <span id="email-error" className="text-danger small mt-1 d-block">{(errors.email.message as string)}</span>
           )}
         </div>
 
         {/* Password Input */}
         <div className="mb-3">
           <div className="d-flex justify-content-between align-items-center mb-1">
-            <label className="form-label text-secondary small fw-medium mb-0">Password</label>
+            <label htmlFor="password" className="form-label text-secondary small fw-medium mb-0">Password</label>
             <Link to="/forgot-password" style={{ fontSize: '0.8rem' }} className="text-accent text-decoration-none">
               Forgot?
             </Link>
           </div>
           <input
+            id="password"
+            name="password"
             type="password"
+            aria-invalid={errors.password ? 'true' : 'false'}
+            aria-describedby={errors.password ? 'password-error' : undefined}
+            autoComplete="current-password"
             className={`form-control border bg-transparent ${errors.password ? 'border-danger' : ''}`}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             style={{ color: 'var(--text-primary)' }}
             {...register('password', { 
               required: 'Password is required',
@@ -90,7 +100,7 @@ export const Login: React.FC = () => {
             })}
           />
           {errors.password && (
-            <span className="text-danger small mt-1 d-block">{(errors.password.message as string)}</span>
+            <span id="password-error" className="text-danger small mt-1 d-block">{(errors.password.message as string)}</span>
           )}
         </div>
 
@@ -105,11 +115,12 @@ export const Login: React.FC = () => {
           type="submit"
           className="btn btn-accent w-100 py-2 d-flex justify-content-center align-items-center gap-2"
           disabled={loading}
+          aria-label="Sign in to your account"
         >
           {loading ? (
             <>
               <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              Authenticating...
+              Signing in...
             </>
           ) : (
             'Sign In'

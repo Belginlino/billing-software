@@ -368,7 +368,20 @@ export const Inventory: React.FC = () => {
       </div>
 
       {/* Products Table grid list */}
-      <div className="custom-table-container">
+      {products.length === 0 ? (
+        <div className="glass-card p-4 text-center border-0">
+          <h5 className="fw-bold">No products yet</h5>
+          <p className="text-secondary small mb-3">Your product catalog is empty. Add products to start selling and tracking inventory.</p>
+          {hasPermission(['super_admin', 'store_manager', 'inventory_staff']) && (
+            <div>
+              <button className="btn btn-accent d-inline-flex align-items-center gap-2" onClick={() => setShowAddProductModal(true)}>
+                <FiPlus /> Add First Product
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="custom-table-container">
         <table className="custom-table">
           <thead>
             <tr>
@@ -524,11 +537,20 @@ export const Inventory: React.FC = () => {
             )}
           </tbody>
         </table>
-      </div>
+        </div>
+      )}
 
       {/* MODAL: Stock Adjust popup */}
       {showStockAdjustModal && adjustVariant && createPortal(
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050 }} tabIndex={-1}>
+        <div
+          className="modal show d-block"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Adjust stock dialog"
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowStockAdjustModal(false); setAdjustVariant(null); } }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050 }}
+          tabIndex={-1}
+        >
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
@@ -614,7 +636,15 @@ export const Inventory: React.FC = () => {
 
       {/* MODAL: Add Product popup */}
       {showAddProductModal && createPortal(
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050, overflowY: 'auto' }} tabIndex={-1}>
+        <div
+          className="modal show d-block"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create new product dialog"
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowAddProductModal(false); } }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1050, overflowY: 'auto' }}
+          tabIndex={-1}
+        >
           <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
@@ -715,7 +745,15 @@ export const Inventory: React.FC = () => {
 
       {/* MODAL: Custom delete confirmation dialog */}
       {deleteConfirmTarget && createPortal(
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1100 }} tabIndex={-1}>
+        <div
+          className="modal show d-block"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Delete confirmation dialog"
+          onKeyDown={(e) => { if (e.key === 'Escape') { setDeleteConfirmTarget(null); } }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1100 }}
+          tabIndex={-1}
+        >
           <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '400px' }}>
             <div className="modal-content bg-secondary text-primary border" style={{ borderColor: 'var(--border-color)' }}>
               <div className="modal-header border-bottom" style={{ borderColor: 'var(--border-color)' }}>
